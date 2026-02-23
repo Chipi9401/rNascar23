@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using rNascar26.Sdk.Common;
+using rNascar23.Sdk.Common;
 using rNascar26.CustomViews;
-using rNascar26.Sdk.Flags.Ports;
-using rNascar26.Sdk.LiveFeeds.Ports;
-using rNascar26.Sdk.Flags.Models;
-using rNascar26.Sdk.PitStops.Ports;
+using rNascar23.Sdk.Flags.Ports;
+using rNascar23.Sdk.LiveFeeds.Ports;
+using rNascar23.Sdk.Flags.Models;
+using rNascar23.Sdk.PitStops.Ports;
 using rNascar26.Settings;
 using rNascar26.ViewModels;
 using System;
@@ -14,8 +14,8 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using PitStop = rNascar26.Sdk.PitStops.Models.PitStop;
-using rNascar26.Sdk.LiveFeeds.Models;
+using PitStop = rNascar23.Sdk.PitStops.Models.PitStop;
+using rNascar23.Sdk.LiveFeeds.Models;
 
 namespace rNascar26.Views
 {

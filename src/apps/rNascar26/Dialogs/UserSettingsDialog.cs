@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using rNascar26.Sdk.Common;
-using rNascar26.Sdk.LoopData.Ports;
+using rNascar23.Sdk.Common;
+using rNascar23.Sdk.LoopData.Ports;
 using rNascar26.Settings;
 using rNascar26.Views;
 using System;
