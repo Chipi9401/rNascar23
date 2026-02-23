@@ -1,0 +1,10 @@
+﻿using rNascar26.LoopData.Models;
+using System.Threading.Tasks;
+
+namespace rNascar26.LoopData.Ports
+{
+    public interface ILoopDataRepository
+    {
+        Task<EventStats> GetEventAsync(int seriesId, int raceId);
+    }
+}

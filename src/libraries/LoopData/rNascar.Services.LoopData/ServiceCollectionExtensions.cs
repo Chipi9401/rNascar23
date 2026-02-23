@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using rNascar23.LoopData.Ports;
-using rNascar23.Service.LiveFeeds;
-using rNascar23.Service.LoopData.Adapters;
+using rNascar26.LoopData.Ports;
+using rNascar26.Service.LiveFeeds;
+using rNascar26.Service.LoopData.Adapters;
 
-namespace rNascar23.Service.LoopData
+namespace rNascar26.Service.LoopData
 {
     public static class ServiceCollectionExtensions
     {

@@ -4,7 +4,7 @@ using System.Reflection;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyCompany("RacerData")]
-[assembly: AssemblyProduct("rNascar23")]
+[assembly: AssemblyProduct("rNascar26")]
 
 // Version information for an assembly consists of the following four values:
 //

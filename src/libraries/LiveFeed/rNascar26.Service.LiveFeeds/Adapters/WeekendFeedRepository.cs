@@ -1,0 +1,49 @@
+﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using rNascar26.Data;
+using rNascar26.LiveFeeds.Models;
+using rNascar26.LiveFeeds.Ports;
+using rNascar26.Service.LiveFeeds.Data.Models;
+using System;
+using System.Threading.Tasks;
+
+namespace rNascar26.Service.LiveFeeds.Adapters
+{
+    internal class WeekendFeedRepository : JsonDataRepository, IWeekendFeedRepository
+    {
+        private readonly IMapper _mapper;
+        private readonly ILogger<WeekendFeedRepository> _logger;
+
+        public WeekendFeedRepository(IMapper mapper, ILogger<WeekendFeedRepository> logger)
+            : base(logger)
+        {
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        // https://cf.nascar.com/cacher/2023/1/5274/weekend-feed.json
+        public string Url { get => @"https://cf.nascar.com/cacher/{0}/{1}/{2}/weekend-feed.json"; }
+
+        public async Task<WeekendFeed> GetWeekendFeedAsync(int seriesId, int raceId, int? year = null)
+        {
+            var absoluteUrl = BuildUrl(seriesId, raceId, year);
+
+            var json = await GetAsync(absoluteUrl).ConfigureAwait(false);
+
+            if (string.IsNullOrEmpty(json))
+                return new WeekendFeed();
+
+            var model = JsonConvert.DeserializeObject<WeekendFeedModel>(json);
+
+            var weekendFeed = _mapper.Map<WeekendFeed>(model);
+
+            return weekendFeed;
+        }
+
+        private string BuildUrl(int seriesId, int raceId, int? year = null)
+        {
+            return String.Format(Url, year.GetValueOrDefault(DateTime.Now.Year), seriesId, raceId);
+        }
+    }
+}
