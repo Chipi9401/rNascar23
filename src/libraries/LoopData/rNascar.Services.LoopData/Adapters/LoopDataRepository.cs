@@ -49,7 +49,7 @@ namespace rNascar23.Service.LoopData.Adapters
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error reading loop data. SeriesId: {seriesId}, RaceId: {raceId}\r\n\r\njson: {json}");
+                _logger.LogError(ex, $"Error reading loop data. SeriesId: {seriesId}, RaceId: {raceId}\r\n\r\njson: {(json?.Length > 200 ? json.Substring(0, 200) : json)}");
             }
 
             return new EventStats();

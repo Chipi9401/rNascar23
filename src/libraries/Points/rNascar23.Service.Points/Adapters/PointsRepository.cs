@@ -70,7 +70,7 @@ namespace rNascar23.Service.Points.Adapters
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error reading stage points data. RaceId: {raceId}, SeriesId: {seriesId}\r\n\r\njson: {json}");
+                _logger.LogError(ex, $"Error reading stage points data. RaceId: {raceId}, SeriesId: {seriesId}\r\n\r\njson: {(json?.Length > 200 ? json.Substring(0, 200) : json)}");
                 return new List<StagePoints2>();
             }
         }

@@ -1474,13 +1474,13 @@ namespace rNascar23
                     switch (gridView.Settings.ApiSource)
                     {
                         case ApiSources.LoopData:
-                            ((IGridView<DriverLoopData>)gridView).Data = _formState.EventStatistics?.Drivers;
+                            ((IGridView<DriverLoopData>)gridView).Data = _formState.EventStatistics?.Drivers ?? new List<DriverLoopData>();
                             break;
                         case ApiSources.Flags:
                             ((IGridView<FlagState>)gridView).Data = _formState.FlagStates?.ToList() ?? new List<FlagState>();
                             break;
                         case ApiSources.LapTimes:
-                            ((IGridView<DriverLaps>)gridView).Data = _formState.LapTimes?.Drivers;
+                            ((IGridView<DriverLaps>)gridView).Data = _formState.LapTimes?.Drivers ?? new List<DriverLaps>();
                             break;
                         case ApiSources.LapTimeData:
                             if (_formState.LapTimes != null)
