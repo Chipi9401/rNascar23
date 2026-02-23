@@ -28,20 +28,31 @@ namespace rNascar23.Service.LoopData.Adapters
 
         public async Task<EventStats> GetEventAsync(int seriesId, int raceId)
         {
-            var absoluteUrl = BuildUrl(seriesId, raceId);
+            string json = string.Empty;
 
-            var json = await GetAsync(absoluteUrl).ConfigureAwait(false);
+            try
+            {
+                var absoluteUrl = BuildUrl(seriesId, raceId);
 
-            if (string.IsNullOrEmpty(json))
-                return new EventStats();
+                json = await GetAsync(absoluteUrl).ConfigureAwait(false);
 
-            var model = JsonConvert.DeserializeObject<EventStatsModel[]>(json);
+                if (string.IsNullOrEmpty(json))
+                    return new EventStats();
 
-            var raceStats = model.FirstOrDefault();
+                var model = JsonConvert.DeserializeObject<EventStatsModel[]>(json);
 
-            var eventStats = _mapper.Map<EventStats>(raceStats);
+                var raceStats = model.FirstOrDefault();
 
-            return eventStats;
+                var eventStats = _mapper.Map<EventStats>(raceStats);
+
+                return eventStats;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error reading loop data. SeriesId: {seriesId}, RaceId: {raceId}\r\n\r\njson: {json}");
+            }
+
+            return new EventStats();
         }
 
         private string BuildUrl(int seriesId, int raceId)

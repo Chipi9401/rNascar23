@@ -27,16 +27,7 @@ namespace rNascar23.Data
             // Execute the request and automatically deserialize the result.
             var result = client.Execute(request);
 
-            var json = result.Content;
-
-            if (json.Contains("<Error>"))
-            {
-                HandleXmlError(url, json);
-
-                return string.Empty;
-            }
-
-            return json;
+            return ProcessResponse(url, result);
         }
 
         protected async Task<string> GetAsync(string url)
@@ -50,12 +41,42 @@ namespace rNascar23.Data
             // Execute the request and automatically deserialize the result.
             var result = await client.ExecuteGetAsync(request);
 
+            return ProcessResponse(url, result);
+        }
+
+        private string ProcessResponse(string url, RestResponse result)
+        {
+            if (result == null)
+            {
+                _logger.LogWarning($"HTTP request to {url} returned null response.");
+                return string.Empty;
+            }
+
+            if (!result.IsSuccessful)
+            {
+                _logger.LogWarning($"HTTP request to {url} failed. StatusCode: {(int)result.StatusCode} ({result.StatusCode}). ErrorMessage: {result.ErrorMessage}");
+                return string.Empty;
+            }
+
             var json = result.Content;
 
-            if (json.Contains("<Error>"))
+            if (string.IsNullOrEmpty(json))
             {
-                HandleXmlError(url, json);
+                _logger.LogWarning($"HTTP request to {url} returned empty content. StatusCode: {(int)result.StatusCode}");
+                return string.Empty;
+            }
 
+            var trimmed = json.TrimStart();
+            if (trimmed.StartsWith("<"))
+            {
+                if (trimmed.Contains("<Error>"))
+                {
+                    HandleXmlError(url, json);
+                }
+                else
+                {
+                    _logger.LogWarning($"HTTP request to {url} returned non-JSON content (XML/HTML). StatusCode: {(int)result.StatusCode}");
+                }
                 return string.Empty;
             }
 

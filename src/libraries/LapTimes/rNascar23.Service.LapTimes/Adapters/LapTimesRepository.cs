@@ -55,21 +55,33 @@ namespace rNascar23.Service.LapTimes.Adapters
 
         public async Task<LapTimeData> GetLapTimeDataAsync(int seriesId, int eventId, int driverId)
         {
-            var absoluteUrl = BuildUrl(seriesId, eventId);
-
-            var json = await GetAsync(absoluteUrl);
-
-            var model = JsonConvert.DeserializeObject<Rootobject>(json);
-
-            var lapTimeData = _mapper.Map<LapTimeData>(model);
-
-            var driverLapTimeData = new LapTimeData()
+            try
             {
-                LapFlags = lapTimeData.LapFlags,
-                Drivers = lapTimeData.Drivers.Where(d => d.NASCARDriverID == driverId).ToList(),
-            };
+                var absoluteUrl = BuildUrl(seriesId, eventId);
 
-            return driverLapTimeData;
+                var json = await GetAsync(absoluteUrl);
+
+                if (string.IsNullOrEmpty(json))
+                    return new LapTimeData();
+
+                var model = JsonConvert.DeserializeObject<Rootobject>(json);
+
+                var lapTimeData = _mapper.Map<LapTimeData>(model);
+
+                var driverLapTimeData = new LapTimeData()
+                {
+                    LapFlags = lapTimeData.LapFlags,
+                    Drivers = lapTimeData.Drivers.Where(d => d.NASCARDriverID == driverId).ToList(),
+                };
+
+                return driverLapTimeData;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error reading lap time data for driver {driverId}");
+            }
+
+            return new LapTimeData();
         }
 
         private string BuildUrl(int seriesId, int eventId)

@@ -81,6 +81,7 @@ namespace rNascar23
         private bool _isFullScreen = false;
         private bool _isImportedData = false;
         private bool _initialLoad = true;
+        private bool _isUpdating = false;
 
         private readonly ILogger<MainForm> _logger = null;
         private readonly ILapTimesRepository _lapTimeRepository = null;
@@ -689,6 +690,12 @@ namespace rNascar23
                 return true;
 
             _formState.LiveFeed = await _liveFeedRepository.GetLiveFeedAsync();
+
+            if (_formState.LiveFeed == null)
+            {
+                _logger.LogWarning("LiveFeed data is unavailable; skipping data refresh.");
+                return false;
+            }
 
             if (!UpdateLastTimestamp(_formState.LiveFeed.TimeOfDayOs))
                 return false;
@@ -1355,7 +1362,7 @@ namespace rNascar23
                 ((Control)pitStopsView).BackColor = Color.White;
             }
 
-            pitStopsView.Data = _formState.PitStops.ToList();
+            pitStopsView.Data = _formState.PitStops?.ToList() ?? new List<PitStop>();
         }
 
         private void SetBottomAndRightZOrder()
@@ -1432,80 +1439,94 @@ namespace rNascar23
 
         private async Task UpdateDataViewsAsync(bool refreshData = true)
         {
-            var hasNewData = !refreshData && _formState.LiveFeed != null || await ReadDataAsync();
-
-            if (!hasNewData)
+            if (refreshData && _isUpdating)
                 return;
 
-            lblLastUpdate.Text = $"Last Update: {_formState.LiveFeed.TimeOfDayOs}";
-
-            if (_formState.LiveFeed == null)
-                return;
-
-            List<IGridView> gridViews = new List<IGridView>();
-
-            if (_viewState == ViewState.None)
+            if (refreshData)
+                _isUpdating = true;
+            try
             {
-                await SetViewStateAsync((ViewState)_formState.LiveFeed.RunType);
-            }
-            else
-            {
-                gridViews.AddRange(pnlMain.Controls.OfType<IGridView>());
-                gridViews.AddRange(pnlRight.Controls.OfType<IGridView>());
-                gridViews.AddRange(pnlBottom.Controls.OfType<IGridView>());
-            }
+                var hasNewData = !refreshData && _formState.LiveFeed != null || await ReadDataAsync();
 
-            foreach (IGridView gridView in gridViews.Where(g => g.IsCustomGrid == false))
-            {
-                switch (gridView.Settings.ApiSource)
+                if (!hasNewData)
+                    return;
+
+                if (_formState.LiveFeed == null)
+                    return;
+
+                lblLastUpdate.Text = $"Last Update: {_formState.LiveFeed.TimeOfDayOs}";
+
+                List<IGridView> gridViews = new List<IGridView>();
+
+                if (_viewState == ViewState.None)
                 {
-                    case ApiSources.LoopData:
-                        ((IGridView<DriverLoopData>)gridView).Data = _formState.EventStatistics.Drivers;
-                        break;
-                    case ApiSources.Flags:
-                        ((IGridView<FlagState>)gridView).Data = _formState.FlagStates.ToList();
-                        break;
-                    case ApiSources.LapTimes:
-                        ((IGridView<DriverLaps>)gridView).Data = _formState.LapTimes.Drivers;
-                        break;
-                    case ApiSources.LapTimeData:
-                        ((IGridView<LapTimeData>)gridView).Data = new List<LapTimeData>() { _formState.LapTimes };
-                        break;
-                    case ApiSources.LiveFeed:
-                        ((IGridView<LiveFeed>)gridView).Data = new List<LiveFeed>() { _formState.LiveFeed };
-                        break;
-                    case ApiSources.RaceLists:
-                        ((IGridView<SeriesEvent>)gridView).Data = _formState.SeriesSchedules.ToList();
-                        break;
-                    case ApiSources.Vehicles:
-                        ((IGridView<Vehicle>)gridView).Data = _formState.LiveFeed.Vehicles;
-                        break;
-                    case ApiSources.LapAverages:
-                        ((IGridView<LapAverages>)gridView).Data = _formState.LapAverages.ToList();
-                        break;
-                    case ApiSources.DriverPoints:
-                        ((IGridView<DriverPoints>)gridView).Data = _formState.LivePoints.ToList();
-                        break;
-                    case ApiSources.PitStops:
-                        ((IGridView<PitStop>)gridView).Data = _formState.PitStops.ToList();
-                        break;
-                    default:
-                        break;
+                    await SetViewStateAsync((ViewState)_formState.LiveFeed.RunType);
                 }
+                else
+                {
+                    gridViews.AddRange(pnlMain.Controls.OfType<IGridView>());
+                    gridViews.AddRange(pnlRight.Controls.OfType<IGridView>());
+                    gridViews.AddRange(pnlBottom.Controls.OfType<IGridView>());
+                }
+
+                foreach (IGridView gridView in gridViews.Where(g => g.IsCustomGrid == false))
+                {
+                    switch (gridView.Settings.ApiSource)
+                    {
+                        case ApiSources.LoopData:
+                            ((IGridView<DriverLoopData>)gridView).Data = _formState.EventStatistics?.Drivers;
+                            break;
+                        case ApiSources.Flags:
+                            ((IGridView<FlagState>)gridView).Data = _formState.FlagStates?.ToList() ?? new List<FlagState>();
+                            break;
+                        case ApiSources.LapTimes:
+                            ((IGridView<DriverLaps>)gridView).Data = _formState.LapTimes?.Drivers;
+                            break;
+                        case ApiSources.LapTimeData:
+                            if (_formState.LapTimes != null)
+                                ((IGridView<LapTimeData>)gridView).Data = new List<LapTimeData>() { _formState.LapTimes };
+                            break;
+                        case ApiSources.LiveFeed:
+                            ((IGridView<LiveFeed>)gridView).Data = new List<LiveFeed>() { _formState.LiveFeed };
+                            break;
+                        case ApiSources.RaceLists:
+                            ((IGridView<SeriesEvent>)gridView).Data = _formState.SeriesSchedules?.ToList() ?? new List<SeriesEvent>();
+                            break;
+                        case ApiSources.Vehicles:
+                            ((IGridView<Vehicle>)gridView).Data = _formState.LiveFeed.Vehicles;
+                            break;
+                        case ApiSources.LapAverages:
+                            ((IGridView<LapAverages>)gridView).Data = _formState.LapAverages?.ToList() ?? new List<LapAverages>();
+                            break;
+                        case ApiSources.DriverPoints:
+                            ((IGridView<DriverPoints>)gridView).Data = _formState.LivePoints?.ToList() ?? new List<DriverPoints>();
+                            break;
+                        case ApiSources.PitStops:
+                            ((IGridView<PitStop>)gridView).Data = _formState.PitStops?.ToList() ?? new List<PitStop>();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                if (pnlBottom.Visible)
+                    SetViewData(pnlBottom);
+                if (pnlRight.Visible)
+                    SetViewData(pnlRight);
+                if (pnlMain.Visible)
+                    SetViewData(pnlMain);
+                if (pnlSchedules.Visible)
+                    SetViewData(pnlSchedules);
+                if (pnlPitStops.Visible)
+                    SetViewData(pnlPitStops);
+
+                DisplayHeaderData();
             }
-
-            if (pnlBottom.Visible)
-                SetViewData(pnlBottom);
-            if (pnlRight.Visible)
-                SetViewData(pnlRight);
-            if (pnlMain.Visible)
-                SetViewData(pnlMain);
-            if (pnlSchedules.Visible)
-                SetViewData(pnlSchedules);
-            if (pnlPitStops.Visible)
-                SetViewData(pnlPitStops);
-
-            DisplayHeaderData();
+            finally
+            {
+                if (refreshData)
+                    _isUpdating = false;
+            }
         }
 
         private void SetViewData(Panel panel)
@@ -1515,16 +1536,18 @@ namespace rNascar23
                 switch (uc.GridViewType)
                 {
                     case GridViewTypes.DriverPoints:
-                        uc.SetDataSource<GenericGridViewModel>(BuildDriverPointsData(_formState.LivePoints.ToList()));
+                        uc.SetDataSource<GenericGridViewModel>(BuildDriverPointsData(_formState.LivePoints?.ToList() ?? new List<DriverPoints>()));
                         break;
                     case GridViewTypes.FastestLaps:
-                        uc.SetDataSource<GenericGridViewModel>(BuildFastestLapsData(_formState.LiveFeed.Vehicles));
+                        if (_formState.LiveFeed?.Vehicles != null)
+                            uc.SetDataSource<GenericGridViewModel>(BuildFastestLapsData(_formState.LiveFeed.Vehicles));
                         break;
                     case GridViewTypes.LapLeaders:
-                        uc.SetDataSource<GenericGridViewModel>(BuildLapLeadersData(_formState.LiveFeed.Vehicles));
+                        if (_formState.LiveFeed?.Vehicles != null)
+                            uc.SetDataSource<GenericGridViewModel>(BuildLapLeadersData(_formState.LiveFeed.Vehicles));
                         break;
                     case GridViewTypes.StagePoints:
-                        uc.SetDataSource<GenericGridViewModel>(BuildStagePointsData(_formState.StagePoints.ToList(), _formState.LiveFeed?.RaceId));
+                        uc.SetDataSource<GenericGridViewModel>(BuildStagePointsData(_formState.StagePoints?.ToList() ?? new List<StagePointsDetails>(), _formState.LiveFeed?.RaceId));
                         break;
                     case GridViewTypes.Best5Laps:
                     case GridViewTypes.Best10Laps:
@@ -1532,13 +1555,15 @@ namespace rNascar23
                     case GridViewTypes.Last5Laps:
                     case GridViewTypes.Last10Laps:
                     case GridViewTypes.Last15Laps:
-                        uc.SetDataSource<GenericGridViewModel>(BuildNLapsData(uc.GridViewType, _formState.LapTimes.Drivers, _formState.LapAverages.ToList()));
+                        uc.SetDataSource<GenericGridViewModel>(BuildNLapsData(uc.GridViewType, _formState.LapTimes?.Drivers, _formState.LapAverages?.ToList() ?? new List<LapAverages>()));
                         break;
                     case GridViewTypes.Movers:
-                        uc.SetDataSource<GenericGridViewModel>(BuildMoversData(_formState.LapTimes));
+                        if (_formState.LapTimes != null)
+                            uc.SetDataSource<GenericGridViewModel>(BuildMoversData(_formState.LapTimes));
                         break;
                     case GridViewTypes.Fallers:
-                        uc.SetDataSource<GenericGridViewModel>(BuildFallersData(_formState.LapTimes));
+                        if (_formState.LapTimes != null)
+                            uc.SetDataSource<GenericGridViewModel>(BuildFallersData(_formState.LapTimes));
                         break;
                     default:
                         break;
@@ -1547,12 +1572,12 @@ namespace rNascar23
 
             foreach (GridViewBase uc in panel.Controls.OfType<FlagsView>())
             {
-                uc.SetDataSource<FlagState>(_formState.FlagStates.ToList());
+                uc.SetDataSource<FlagState>(_formState.FlagStates?.ToList() ?? new List<FlagState>());
             }
 
             foreach (GridViewBase uc in panel.Controls.OfType<KeyMomentsView>())
             {
-                uc.SetDataSource<KeyMoment>(_formState.KeyMoments.ToList());
+                uc.SetDataSource<KeyMoment>(_formState.KeyMoments?.ToList() ?? new List<KeyMoment>());
             }
         }
 
@@ -1962,6 +1987,9 @@ namespace rNascar23
 
         private void DisplayHeaderData()
         {
+            if (_formState.LiveFeed == null)
+                return;
+
             picFlagStatus.BackColor =
                 _formState.LiveFeed.FlagState == FlagColors.Green ? FlagUiColors.Green :
                 _formState.LiveFeed.FlagState == FlagColors.Yellow ? FlagUiColors.Yellow :

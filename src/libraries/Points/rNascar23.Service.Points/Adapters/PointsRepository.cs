@@ -44,7 +44,8 @@ namespace rNascar23.Service.Points.Adapters
             }
             catch (Exception ex)
             {
-                throw ex;
+                _logger.LogError(ex, $"Error reading driver points data. RaceId: {raceId}, SeriesId: {seriesId}");
+                return new List<DriverPoints>();
             }
         }
 
@@ -54,10 +55,12 @@ namespace rNascar23.Service.Points.Adapters
 
             try
             {
-
                 var absoluteUrl = BuildUrl(seriesId, raceId);
 
                 json = await GetAsync(absoluteUrl).ConfigureAwait(false);
+
+                if (string.IsNullOrEmpty(json))
+                    return new List<StagePoints2>();
 
                 var models = JsonConvert.DeserializeObject<StagePointsModel2[]>(json);
 
@@ -67,7 +70,8 @@ namespace rNascar23.Service.Points.Adapters
             }
             catch (Exception ex)
             {
-                throw ex;
+                _logger.LogError(ex, $"Error reading stage points data. RaceId: {raceId}, SeriesId: {seriesId}\r\n\r\njson: {json}");
+                return new List<StagePoints2>();
             }
         }
 
