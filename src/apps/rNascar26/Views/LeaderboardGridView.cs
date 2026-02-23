@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using rNascar23.Sdk.Common;
+using rNascar26.Sdk.Common;
 using rNascar26.CustomViews;
-using rNascar23.Sdk.LiveFeeds.Models;
-using rNascar23.Sdk.Media.Models;
-using rNascar23.Sdk.Media.Ports;
+using rNascar26.Sdk.LiveFeeds.Models;
+using rNascar26.Sdk.Media.Models;
+using rNascar26.Sdk.Media.Ports;
 using rNascar26.Properties;
 using rNascar26.Settings;
 using rNascar26.ViewModels;

@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using rNascar26.Configuration;
 using rNascar26.Dialogs;
-using rNascar23.Sdk;
+using rNascar26.Sdk;
 using rNascar26.Settings;
 using Serilog;
 using System;
