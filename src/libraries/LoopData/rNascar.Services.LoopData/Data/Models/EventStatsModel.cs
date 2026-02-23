@@ -1,4 +1,4 @@
-﻿namespace rNascar23.Service.LoopData.Data.Models
+﻿namespace rNascar26.Service.LoopData.Data.Models
 {
     public class EventStatsModel
     {

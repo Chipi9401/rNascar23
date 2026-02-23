@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using rNascar23.LoopData.Models;
-using rNascar23.Service.LoopData.Data.Models;
+using rNascar26.LoopData.Models;
+using rNascar26.Service.LoopData.Data.Models;
 
-namespace rNascar23.Service.LoopData.Mappings
+namespace rNascar26.Service.LoopData.Mappings
 {
     internal class DriverMappingProfile : Profile
     {

@@ -1,0 +1,17 @@
+﻿using rNascar26.Sdk.Common;
+
+namespace rNascar26.ViewModels
+{
+    public class DriverPitStopViewModel
+    {
+        public string CarNumber { get; set; }
+        public string DriverName { get; set; }
+        public int RunningPosition { get; set; }
+        public int PitOnLap { get; set; }
+        public float PitStopTime { get; set; }
+        public int PositionIn { get; set; }
+        public int PositionOut { get; set; }
+        public int PositionDelta { get; set; }
+        public PitStopChanges Changes { get; set; }
+    }
+}
